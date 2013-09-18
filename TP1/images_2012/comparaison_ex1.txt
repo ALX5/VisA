@@ -1,3 +1,11 @@
+// Linke Alexis
+// 11-9-2013
+// M2-IVI
+// VisA
+// TP 1 : Modification d'images couleur.
+// Exercice 1 : Manipulation de la luminance.
+// Q3
+
 macro "comparaison" {
 
 	open("it1_72pp.bmp");
@@ -14,6 +22,8 @@ macro "comparaison" {
 	
 	run("Duplicate...", "title=luminance_augmentée");
 	image_luminance_aug = getImageID();
+	
+	min=W*H;
 	
 	for(x=0; x<256;x++){
 		for (j=0; j<H; j++) {
@@ -41,10 +51,18 @@ macro "comparaison" {
 			}
 		}
 		imageCalculator("Subtract create", "it1_72pp.bmp","luminance_augmentée");
-		getRawStatistics(nPixels, mean, min, max, std, histogram);
-		if(max==0) {
+		cpt=0;
+		for (j=0; j<H; j++) {
+			for (i=0; i<W; i++) 
+			{
+				couleur = getPixel(i,j);
+				cpt=cpt+couleur;
+			}
+		}
+		
+		if(cpt<min) {
+			min = cpt;
 			result = x;
-			x=256;
 		}
 	}
 	print(result);
