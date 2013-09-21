@@ -1,0 +1,80 @@
+// Linke Alexis
+// 11-9-2013
+// M2-IVI
+// VisA
+// TP2 : Segmentation d’une image de luminance.
+// Binarisation d'une image de luminance bruitée par méthode Otsu.
+ 
+macro "modification_saturation" 
+{
+	image = getImageID();
+
+	W = getWidth();
+	H = getHeight();
+
+	run("Duplicate...", "title=binarisee");
+	image_binaire = getImageID();
+
+	// Récupération de l'histogramme.
+	getHistogram (level,histo,256);
+	proba = newArray(256);
+	omega0 = newArray(256);
+	omega1 = newArray(256);
+	
+	mu0 = newArray(256);
+	mu1 = newArray(256);
+	
+	sigma = newArray(256);
+ 
+	print("Binarisation par méthode Otsu.\n");
+
+	// Calcul des probabilités de chaque niveau d'intensité.
+	for ( i = 0; i < 256; i ++ ) 
+	{
+		proba[i] = histo[i] / (H * W);
+	}
+ 
+	omega0[0] = histo[0];
+	omega1[0] = H*W - omega0;
+
+	mu0[0] = 0;
+	mu1[0] = 0;
+
+	max_sigma = 0;
+	i_max = 0;
+	
+	for (t=1; t<256; t++) 
+	{
+		for (i=0; i<=t; i++) 
+		{
+			omega0[t] += histo[i];
+		}
+		
+		for (i=t+1; i<256; i++) 
+		{
+			omega1[t] += histo[i];
+		}
+		
+		for (i=0; i<=t; i++) 
+		{
+			mu0[t] += (i * histo[i]) / omega0[t];
+		}
+
+		for ( i =t+1 ; i<= 255; i++) 
+		{
+			mu1[t] += (i * histo[i]) / omega1[t];
+		}
+
+		sigma[t] = sqrt( (omega0[t]*omega1[t] / H*W) * pow(mu1[t]-mu0[t], 2) );
+		
+		if (sigma[t] > max_sigma) {
+			  max_sigma = sigma[t];
+			  i_max = t;
+		}		
+	}
+ 
+	selectImage(image_binaire);
+	print ("seuil i_max=",i_max);
+	setThreshold(0,i_max);
+	run("Convert to Mask");
+}	
