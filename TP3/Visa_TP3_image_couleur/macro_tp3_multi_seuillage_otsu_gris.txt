@@ -1,0 +1,84 @@
+// Linke Alexis
+// 25-9-2013
+// M2-IVI
+// VisA
+// TP3 : Segmentation d’une image couleur à partir d'analyse d'histogramme.
+// 1 Multi-seuillage par Otsu d'une image en niveaux de gris.
+ 
+macro "multi_binarisation_gris" 
+{
+	image = getImageID();
+
+	W = getWidth();
+	H = getHeight();
+
+	run("Duplicate...", "title=trinarisee");
+	image_trinaire = getImageID();
+
+	// Récupération de l'histogramme.
+	getHistogram (level,histo,256);
+ 
+	print("Multi-seuillage par méthode Otsu.\n");
+	print("Wait...");
+ 
+	// Valeur max de sigmaB².
+	max_sigmaB2 = 0;
+	
+	// Indices du max.
+	s1 = 0;
+	s2 = 0;
+	
+	// Calcul de mu, centre de gravité total.
+	mu = 0;
+	for (i=0; i<256; i++) mu += i*histo[i];
+	mu = mu/(H*W);
+	
+	// Définition des omega initiaux. 
+	omega0 = histo[0];
+	omega1 = H*W - omega0;
+	omega2=H*W-omega0-omega1;
+						
+	for (t1=1; t1<255; t1++) 
+	{	
+		omega0+=histo[t1];
+		omega1=0;
+		for(t2=t1+1; t2<256; t2++)
+		{		
+			omega1+=histo[t2];
+			omega2=H*W-omega0-omega1;
+			
+			// Initialisation des mu.			
+			mu0 = 0;
+			mu1 = 0;
+			mu2 = 0;
+			
+			// Mise à jour des mu.
+			if(omega0!=0 && omega1!=0 && omega2!=0) 
+			{
+				for (i=0; i<=t1; i++) mu0 += (i * histo[i]) / omega0;
+				for (i=t1+1; i<=t2; i++) mu1 += (i * histo[i]) / omega1;
+				for (i=t2+1; i<256; i++) mu2 += (i * histo[i]) / omega2;
+				
+				// Calcul de sigmaB².
+				sigmaB2 = (omega0*pow(mu0-mu,2)+omega1*pow(mu1-mu,2)+omega2*pow(mu2-mu,2))/(H*W);
+				
+				// Recherche du max de sigmaB².
+				if (sigmaB2 > max_sigmaB2) {
+					  max_sigmaB2 = sigmaB2;
+					  s1=t1;
+					  s2=t2;
+				}
+			}
+		}
+	}
+
+	// Multi-seuillage de l'image. 
+	selectImage(image_trinaire);
+	for(x=0; x<W; x++)
+		for(y=0; y<H; y++) 
+			if(getPixel(x,y)<s1) setPixel(x,y,0);
+			else if(getPixel(x,y)<s2) setPixel(x,y,127);
+			else setPixel(x,y,255);
+	print ("s1=",s1);
+	print ("s2=",s2);
+}	
