@@ -1,5 +1,5 @@
 #ImageJ 1.46f Preferences
-#Mon Oct 14 16:19:02 CEST 2013
+#Wed Oct 16 12:49:53 CEST 2013
 fps=7.000007000007
 new.slices=1
 plugin01=h,"*Pixel Inspector[q]",ij.plugin.Hotkeys("Pixel Inspector")
